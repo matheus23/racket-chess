@@ -3,9 +3,12 @@
 (require pict)
 (require racket/class)
 (require racket/draw)
+(require (planet plt/rsvg:1:0))
 
-(define cell-w 32)
-(define cell-h 32)
+(define cell-w 24)
+(define cell-h 24)
+
+(define use-png? #f)
 
 (define (map-range n func)
   (define (map-range-acc max-n n func)
@@ -41,7 +44,7 @@
   (let ((fig (lookup (list x y) initial-figures)))
     (if (equal? fig #f)
         (blank cell-w cell-h)
-        fig)))
+        (scale-to-fit fig cell-w cell-h))))
 
 (define (get-square x y)
   (cc-superimpose (background-square x y) (foreground-square x y)))
@@ -75,7 +78,14 @@
 
 (define (get-figure str figures) (lookup (to-pos str) figures))
 
-(define (load-figure name) (bitmap (string-append name ".png")))
+(define (load-figure name) 
+  (let ((filepath 
+    (string-append (if use-png? "png/" "svg/") 
+                   name 
+                   (if use-png? ".png" ".svg"))))
+    (bitmap (if use-png?
+                filepath
+                (load-svg-from-file filepath)))))
 
 (define w-king (load-figure "KingW"))
 (define w-queen (load-figure "QueenW"))
